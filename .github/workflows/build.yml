@@ -1,26 +1,52 @@
-name: Build binary
+name: Build and Release imvrs
 
 on:
   push:
     branches: [master]
-  pull_request:
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Build with Cargo
+      - name: Build imvrs binary
         run: cargo build --release
 
-      - name: Upload Linux binary
+      - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: imv-rs-linux-x86_64
-          path: target/release/imv-rs
+          name: imvrs-linux-x86_64
+          path: target/release/imvrs
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: imvrs-linux-x86_64
+          path: build/
+
+      - name: Create or update "latest" release
+        id: release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest release
+          files: build/imvrs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -16,6 +16,8 @@ fn main() -> Result<(), eframe::Error> {
         (false, args[1].as_str())
     } else if args.len() == 3 && args[1] == "--debug" {
         (true, args[2].as_str())
+    } else if args.len() == 1 {
+        (false, ".")
     } else {
         eprintln!("Usage: {} [--debug] <image-path>", args[0]);
         std::process::exit(1);
@@ -40,7 +42,7 @@ fn main() -> Result<(), eframe::Error> {
         std::process::exit(1);
     }
 
-    log::info!("Starting image viewer with file: {}", image_path);
+    log::info!("Starting image viewer with path: {}", image_path);
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([800.0, 600.0]),

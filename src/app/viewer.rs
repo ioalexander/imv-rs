@@ -14,13 +14,37 @@ impl ImageViewer {
         log::info!("Creating ImageViewer for path: {}", path);
         let current_path = PathBuf::from(path);
 
-        let navigation = Navigation::from_path(&current_path);
+        let supported_extensions = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "ico", "tiff"];
+
+        let start_path = if current_path.is_file() {
+            current_path.clone()
+        } else if current_path.is_dir() {
+            let mut first_image: Option<PathBuf> = None;
+            if let Ok(entries) = std::fs::read_dir(&current_path) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_file() {
+                        if let Some(ext) = path.extension().and_then(|s| s.to_str()) {
+                            if supported_extensions.contains(&ext.to_lowercase().as_str()) {
+                                first_image = Some(path);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            first_image.unwrap_or(current_path.clone())
+        } else {
+            current_path.clone()
+        };
+
+        let navigation = Navigation::from_path(&start_path);
 
         let mut image_state = ImageState::new(
             navigation
                 .current_path()
                 .cloned()
-                .unwrap_or_else(|| current_path.clone()),
+                .unwrap_or_else(|| start_path.clone()),
         );
 
         if let Some(p) = navigation.current_path() {

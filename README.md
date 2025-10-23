@@ -20,7 +20,7 @@ This whole thing started when the original [imv](https://sr.ht/~exec64/imv/) beg
 
 - Animated WEBP
 - Animated PNG
-- Performance improvements for WEBP decoding
+- Performance improvements for image decoding / async loading with status
 
 No weird library setup, no fighting with ancient dependencies. Just build and run.
 

@@ -1,4 +1,4 @@
-name: Build and Release imvrs
+name: Build and Release imv-rs
 
 on:
   push:
@@ -18,14 +18,14 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Build imvrs binary
+      - name: Build imv-rs binary
         run: cargo build --release
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: imvrs-linux-x86_64
-          path: target/release/imvrs
+          name: imv-rs_linux_x86_64
+          path: target/release/imv-rs
 
   release:
     needs: build
@@ -38,7 +38,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: imvrs-linux-x86_64
+          name: imv-rs_linux_x86_64
           path: build/
 
       - name: Create or update "latest" release
@@ -47,6 +47,6 @@ jobs:
         with:
           tag_name: latest
           name: Latest release
-          files: build/imvrs
+          files: build/imv-rs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

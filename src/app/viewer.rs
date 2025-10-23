@@ -106,9 +106,12 @@ impl ImageViewer {
 impl eframe::App for ImageViewer {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // gif logic
-        if !self.gif_frames.is_empty() && self.last_frame_update.elapsed() >= self.frame_delay {
-            self.current_frame = (self.current_frame + 1) % self.gif_frames.len();
-            self.last_frame_update = Instant::now();
+        if !self.gif_frames.is_empty() {
+            if self.last_frame_update.elapsed() >= self.frame_delay {
+                self.current_frame = (self.current_frame + 1) % self.gif_frames.len();
+                self.last_frame_update = Instant::now();
+            }
+
             ctx.request_repaint();
         }
 

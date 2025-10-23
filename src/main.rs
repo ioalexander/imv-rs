@@ -29,8 +29,15 @@ fn main() -> Result<(), eframe::Error> {
         "Simple Image Viewer",
         options,
         Box::new(|cc| {
-            let texture = image::loader::load_image(image_path, &cc.egui_ctx);
-            Ok(Box::new(app::viewer::ImageViewer::new(texture)))
+            // Try to load as GIF first, fall back to static image
+            if let Some(gif_viewer) =
+                app::viewer::ImageViewer::load_animated_gif(image_path, &cc.egui_ctx)
+            {
+                Ok(Box::new(gif_viewer))
+            } else {
+                let texture = image::loader::load_image(image_path, &cc.egui_ctx);
+                Ok(Box::new(app::viewer::ImageViewer::new(texture)))
+            }
         }),
     )
 }

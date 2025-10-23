@@ -1,3 +1,7 @@
+use std::sync::Once;
+
+static LOG_INIT: Once = Once::new();
+
 mod app;
 mod image;
 
@@ -8,18 +12,35 @@ use std::path::Path;
 fn main() -> Result<(), eframe::Error> {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() != 2 {
-        eprintln!("Usage: {} <image-path>", args[0]);
+    let (debug_mode, image_path) = if args.len() == 2 {
+        (false, args[1].as_str())
+    } else if args.len() == 3 && args[1] == "--debug" {
+        (true, args[2].as_str())
+    } else {
+        eprintln!("Usage: {} [--debug] <image-path>", args[0]);
         std::process::exit(1);
-    }
+    };
 
-    let image_path = &args[1];
-    let path = Path::new(image_path);
+    LOG_INIT.call_once(|| {
+        if debug_mode {
+            env_logger::Builder::from_default_env()
+                .filter_level(log::LevelFilter::Debug)
+                .init();
+            log::debug!("Debug mode enabled");
+        } else {
+            env_logger::Builder::from_default_env()
+                .filter_level(log::LevelFilter::Warn)
+                .init();
+        }
+    });
 
-    if !path.exists() {
+    if !Path::new(image_path).exists() {
+        log::error!("File '{}' does not exist", image_path);
         eprintln!("Error: File '{}' does not exist", image_path);
         std::process::exit(1);
     }
+
+    log::info!("Starting image viewer with file: {}", image_path);
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([800.0, 600.0]),

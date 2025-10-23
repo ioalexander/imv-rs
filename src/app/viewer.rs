@@ -24,6 +24,7 @@ pub struct ImageViewer {
 
 impl ImageViewer {
     pub fn new_from_path(path: &str, ctx: &egui::Context) -> Self {
+        log::info!("Creating ImageViewer for path: {}", path);
         let current_path = PathBuf::from(path);
 
         let (file_list, current_index) = Self::build_file_list(&current_path);
@@ -46,6 +47,8 @@ impl ImageViewer {
 
     fn build_file_list(current_path: &Path) -> (Vec<PathBuf>, usize) {
         let dir = current_path.parent().unwrap_or(Path::new("."));
+        log::debug!("Building file list for directory: {}", dir.display());
+
         let mut file_list = Vec::new();
 
         let supported_extensions = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "ico", "tiff"];
@@ -75,15 +78,30 @@ impl ImageViewer {
             .position(|p| p == current_path)
             .unwrap_or(0);
 
+        log::debug!(
+            "Current file index: {}, total files: {}",
+            current_index,
+            file_list.len()
+        );
+
         (file_list, current_index)
     }
 
     fn load_current_image(&mut self, ctx: &egui::Context) {
         if self.file_list.is_empty() {
+            log::warn!("No image files found in directory");
             return;
         }
 
         self.current_file_path = self.file_list[self.current_index].clone();
+        let path_str = self.current_file_path.to_str().unwrap();
+
+        log::info!(
+            "Loading image: {} (index: {}/{})",
+            path_str,
+            self.current_index + 1,
+            self.file_list.len()
+        );
 
         // reset animation state
         self.gif_frames.clear();
@@ -95,10 +113,22 @@ impl ImageViewer {
 
         // load as gif first
         if let Some((frames, delay)) = Self::load_animated_gif(path_str, ctx) {
+            log::debug!(
+                "Loaded animated GIF with {} frames, delay: {:?}",
+                frames.len(),
+                delay
+            );
             self.gif_frames = frames;
             self.frame_delay = delay;
         } else {
+            log::debug!("Loading as static image");
             self.texture = crate::image::loader::load_image(path_str, ctx);
+
+            if self.texture.is_some() {
+                log::debug!("Static image loaded successfully");
+            } else {
+                log::error!("Failed to load image: {}", path_str);
+            }
         }
     }
 
@@ -106,6 +136,8 @@ impl ImageViewer {
         path: &str,
         ctx: &egui::Context,
     ) -> Option<(Vec<egui::TextureHandle>, Duration)> {
+        log::debug!("Attempting to load GIF: {}", path);
+
         let file = std::fs::File::open(path).ok()?;
         let buf_reader = BufReader::new(file);
         let decoder = image::codecs::gif::GifDecoder::new(buf_reader).ok()?;
@@ -128,8 +160,10 @@ impl ImageViewer {
         }
 
         if textures.is_empty() {
+            log::debug!("No frames found in GIF");
             None
         } else {
+            log::debug!("Successfully loaded GIF with {} frames", textures.len());
             Some((textures, frame_delay))
         }
     }
@@ -139,11 +173,18 @@ impl ImageViewer {
             return;
         }
 
+        let old_index = self.current_index;
         self.current_index = if self.current_index == 0 {
             self.file_list.len() - 1
         } else {
             self.current_index - 1
         };
+
+        log::debug!(
+            "Navigation: previous ({} -> {})",
+            old_index,
+            self.current_index
+        );
 
         self.pending_navigation = Some(-1);
     }
@@ -153,11 +194,14 @@ impl ImageViewer {
             return;
         }
 
+        let old_index = self.current_index;
         self.current_index = if self.current_index == self.file_list.len() - 1 {
             0
         } else {
             self.current_index + 1
         };
+
+        log::debug!("Navigation: next ({} -> {})", old_index, self.current_index);
 
         self.pending_navigation = Some(1);
     }
@@ -195,6 +239,8 @@ impl eframe::App for ImageViewer {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // handle pending navigation (deferred to avoid deadlocks)
         if self.pending_navigation.is_some() {
+            log::debug!("Processing pending navigation");
+
             self.load_current_image(ctx);
             self.pending_navigation = None;
         }

@@ -26,8 +26,8 @@ cargo build --release
 
 ## Usage
 
-`H` or `←` - Go to previous file
-`L` or `→` - Go to next file
+- `H` or `←` - Go to previous file
+- `L` or `→` - Go to next file
 
 ### What works out of the box
 

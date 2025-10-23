@@ -2,8 +2,10 @@
 name = "imvrs"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
 
 [dependencies]
+eframe = "0.33.0"
+egui = "0.33.0"
+egui_extras = "0.33.0"
 image = "0.25.8"
-minifb = "0.28.0"
-resize = "0.8.8"

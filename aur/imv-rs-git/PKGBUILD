@@ -1,0 +1,47 @@
+pkgname=imv-rs-git
+pkgver=r13.g2ef0cf0
+pkgrel=1
+pkgdesc="Simple Image Viewer built with Rust and egui (git version)"
+arch=('x86_64')
+url="https://github.com/ioalexander/imv-rs"
+license=('MIT')
+provides=('imv-rs')
+conflicts=('imv-rs' 'imv-rs-bin')
+depends=('glibc' 'xdg-utils' 'shared-mime-info')
+makedepends=('cargo' 'rust' 'git')
+
+# Build from git repository
+source=("git+https://github.com/ioalexander/imv-rs.git")
+sha256sums=('SKIP')
+
+# Dynamic pkgver based on commit count and hash
+pkgver() {
+	cd "$srcdir/imv-rs"
+	echo "r$(git rev-list --count HEAD).g$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd "$srcdir/imv-rs"
+	cargo build --release --locked
+}
+
+package() {
+	cd "$srcdir/imv-rs"
+
+	install -Dm755 "target/release/imv-rs" "${pkgdir}/usr/bin/imv-rs"
+
+	install -d "${pkgdir}/usr/share/applications"
+	cat <<EOF >"${pkgdir}/usr/share/applications/imv-rs.desktop"
+[Desktop Entry]
+Name=imv-rs
+GenericName=Image Viewer
+Comment=Simple Image Viewer built with Rust and egui
+Exec=imv-rs %f
+Terminal=false
+Type=Application
+MimeType=image/png;image/jpeg;image/webp;image/bmp;image/gif;image/tiff;image/x-xcf;image/x-icon;
+Categories=Graphics;Viewer;
+Icon=imv-rs
+StartupNotify=true
+EOF
+}

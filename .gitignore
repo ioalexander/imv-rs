@@ -1,1 +1,7 @@
 /target
+
+aur/imv-rs-bin/*
+aur/imv-rs-git/*
+
+!aur/imv-rs-bin/PKGBUILD
+!aur/imv-rs-git/PKGBUILD

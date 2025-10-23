@@ -14,8 +14,9 @@ fn main() -> Result<(), eframe::Error> {
     }
 
     let image_path = &args[1];
+    let path = Path::new(image_path);
 
-    if !Path::new(image_path).exists() {
+    if !path.exists() {
         eprintln!("Error: File '{}' does not exist", image_path);
         std::process::exit(1);
     }
@@ -26,18 +27,11 @@ fn main() -> Result<(), eframe::Error> {
     };
 
     eframe::run_native(
-        "Simple Image Viewer",
+        "imvrs - Image Viewer",
         options,
         Box::new(|cc| {
-            // Try to load as GIF first, fall back to static image
-            if let Some(gif_viewer) =
-                app::viewer::ImageViewer::load_animated_gif(image_path, &cc.egui_ctx)
-            {
-                Ok(Box::new(gif_viewer))
-            } else {
-                let texture = image::loader::load_image(image_path, &cc.egui_ctx);
-                Ok(Box::new(app::viewer::ImageViewer::new(texture)))
-            }
+            let viewer = app::viewer::ImageViewer::new_from_path(image_path, &cc.egui_ctx);
+            Ok(Box::new(viewer))
         }),
     )
 }

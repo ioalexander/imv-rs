@@ -9,3 +9,4 @@ eframe = "0.33.0"
 egui = "0.33.0"
 egui_extras = { version = "0.33.0", features = ["image", "gif"] }
 image = { version = "0.25.8", features = ["gif"] }
+natord = "1.0.9"
